@@ -5,7 +5,6 @@ module Api
     class IpActivitiesController < Api::BaseController
       DEFAULT_ORDER_FIELD = :created_at
       DEFAULT_ORDER_DIRECTION = :desc
-      LIMIT = 1000
 
       before_action :set_user
 
@@ -30,15 +29,15 @@ module Api
       end
 
       def user_ip_activities
-        ip_activities = ::IpActivity.unscoped.for_user(@user)
-                                    .recent_n_per_activity_type(LIMIT)
-        apply_filters(ip_activities).reorder(order)
+        apply_filters(fetch_limited_activities).reorder(order)
       end
 
       def count_user_ip_activities
-        ip_activities = ::IpActivity.unscoped.for_user(@user)
-                                    .recent_n_per_activity_type(LIMIT)
-        apply_filters(ip_activities).count
+        apply_filters(fetch_limited_activities).count
+      end
+
+      def fetch_limited_activities
+        IpActivityFetcher.new(@user).call
       end
 
       def trading_account_logins
