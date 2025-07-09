@@ -22,19 +22,20 @@ class IpActivity < ApplicationRecord
   default_scope { order(created_at: :desc) }
 
   scope :for_user, lambda { |user|
-    where(user:).includes(:user, :trading_account, :ip_address_record)
-                .or(where(trading_account_login: user.trading_accounts.select(:login)))
+    logins = TradingAccount.where(user_id: user.id).pluck(:login)
+    where(user_id: user.id)
+      .or(where(trading_account_login: logins))
   }
   scope :recent_n_per_activity_type, lambda { |limit|
     query = <<-SQL.squish
-      SELECT activity_limited.id
+      SELECT activity_all.id
       FROM (SELECT DISTINCT activity_type FROM ip_activities) activity_groups
       JOIN LATERAL (
-        SELECT * FROM ip_activities activity_all
+        SELECT id FROM ip_activities activity_all
         WHERE activity_all.activity_type = activity_groups.activity_type
         ORDER BY activity_all.created_at DESC
         LIMIT :limit
-      ) activity_limited ON true
+      ) activity_all ON true
     SQL
 
     where("ip_activities.id IN (#{ApplicationRecord.sanitize_sql([query, { limit: }])})")
