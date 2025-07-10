@@ -5,7 +5,7 @@ class AddIndexOnActivityTypeAndCreatedAtToIpActivities < ActiveRecord::Migration
     add_index :ip_activities,
               [:activity_type, :created_at],
               order: { created_at: :desc },
-              name: "index_ip_activities_on_type_and_created_at",
+              name: 'index_ip_activities_on_type_and_created_at',
               algorithm: :concurrently
   end
 end

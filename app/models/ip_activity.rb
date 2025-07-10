@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class IpActivity < ApplicationRecord
+  include Filterable
+
   enum :activity_type, { trade: 0, login: 1, kyc: 2 }
 
   validates :activity_type, :ip_address, presence: true
@@ -40,6 +42,28 @@ class IpActivity < ApplicationRecord
 
     where("ip_activities.id IN (#{ApplicationRecord.sanitize_sql([query, { limit: }])})")
   }
+
+  def self.filter_fields
+    {
+      created_at_from: { type: 'date' },
+      created_at_to:   { type: 'date' },
+      activity_type:   { type: 'enum', values: activity_types.keys },
+      trading_account_login: { type: 'text' },
+      phase:          { type: 'enum', values: TradingAccount.phases.keys },
+      platform:       { type: 'enum', values: TradingAccount.platforms.keys }
+    }
+  end
+
+  def self.filter_mappings
+    {
+      created_at_from: ->(scope, value) { scope.where('ip_activities.created_at >= ?', Time.zone.parse(value)) },
+      created_at_to:   ->(scope, value) { scope.where('ip_activities.created_at <= ?', Time.zone.parse(value)) },
+      activity_type:   ->(scope, value) { scope.where(activity_type: Array(value)) },
+      trading_account_login: ->(scope, value) { scope.where(trading_account_login: Array(value)) },
+      phase:           ->(scope, value) { scope.joins(:trading_account).where(trading_accounts: { phase: Array(value) }) },
+      platform:        ->(scope, value) { scope.joins(:trading_account).where(trading_accounts: { platform: Array(value) }) }
+    }
+  end
 
   def resource
     trading_account || user

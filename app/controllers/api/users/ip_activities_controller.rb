@@ -47,13 +47,27 @@ module Api
                   .compact
       end
 
+      def universal_filter_present?
+        params[:universal_filter_id].present?
+      end
+
       def apply_filters(scope)
+        # Apply universal filter if present else over existing will work, which is the default behavior, but if we create custom filter with the same logics they become useless.
+        return apply_universal_filters(scope) if universal_filter_present?
+
         scope = apply_date_filter(scope)
         scope = apply_activity_type_filter(scope)
         scope = apply_phase_filter(scope)
         scope = apply_platform_filter(scope)
         scope = apply_trading_account_login_filter(scope)
         scope
+      end
+
+      def apply_universal_filters(scope)
+        filter = UniversalFilter.find_by(id: params[:universal_filter_id])
+        return scope if filter.nil? || filter.target_model != 'IpActivity'
+
+        FilterService.new(scope: scope, filters: filter.filter_params).call
       end
 
       def apply_date_filter(scope)
