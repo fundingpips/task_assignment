@@ -38,10 +38,10 @@ class IpActivity < ApplicationRecord
         ORDER BY activity_all.created_at DESC
         LIMIT :limit
       ) activity_all ON true
-    SQL
+  SQL
 
     where("ip_activities.id IN (#{ApplicationRecord.sanitize_sql([query, { limit: }])})")
-  }
+}
 
   def self.filter_fields
     {

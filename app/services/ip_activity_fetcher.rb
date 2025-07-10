@@ -32,8 +32,7 @@ class IpActivityFetcher
     IpActivity
       .unscoped
       .for_user(@user)
-      .where(activity_type: IpActivity.activity_types[type])
-      .limit(limit)
+      .recent_n_per_activity_type(limit)
       .pluck(:id)
   end
 
