@@ -17,7 +17,7 @@ gem "puma", "< 7"
 # Build JSON APIs with ease
 gem "active_model_serializers", "~> 0.9.0"
 
-gem "view_component", "~> 3.20"
+gem "view_component", "~> 4.9"
 
 # Use Redis adapter to run Action Cable in production
 gem "redis"
